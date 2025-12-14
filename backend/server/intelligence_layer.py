@@ -140,6 +140,89 @@ class IntelligenceLayer:
             print(f"Error in propose_mitigation: {e}. Falling back to mock data.")
             return self._get_mock_mitigation()
 
+    def predict_risks(self, congestion_data):
+        """
+        Predict risks based on congestion and traffic data.
+        """
+        # Simple heuristic prompt as this is a new capability
+        prompt = f"""
+        Analyze the following port congestion data and predict potential supply chain risks.
+        Data: {json.dumps(congestion_data, default=str)}
+        
+        Return a JSON list of objects with:
+        - risk_type (string)
+        - description (string)
+        - severity (low/medium/high)
+        - predicted_delay_hours (int)
+        """
+        
+        messages = [
+            SystemMessage(content="You are a Predictive Supply Chain Agent. You analyze data patterns to predict future risks."),
+            HumanMessage(content=prompt)
+        ]
+
+        try:
+            response = self._invoke_llm(messages)
+            return self._parse_json_response(response.content)
+        except Exception as e:
+            print(f"Error in predict_risks: {e}")
+            return []
+
+    def optimize_mitigation(self, mitigation_plan, shipment_context):
+        """
+        Find better alternatives for a proposed mitigation.
+        """
+        prompt = f"""
+        Review the following mitigation plan and propose an optimized alternative route/method that might be cheaper or faster.
+        Original Plan: {mitigation_plan.get('description')} (Cost: ${mitigation_plan.get('estimated_cost')})
+        Context: {shipment_context}
+        
+        Return a JSON object with:
+        - route_description (string)
+        - estimated_cost_usd (number)
+        - estimated_duration_hours (int)
+        - score (0-100)
+        """
+        
+        messages = [
+            SystemMessage(content="You are an Optimization Agent. You find the most efficient logistics solutions."),
+            HumanMessage(content=prompt)
+        ]
+
+        try:
+            response = self._invoke_llm(messages)
+            return self._parse_json_response(response.content)
+        except Exception as e:
+            print(f"Error in optimize_mitigation: {e}")
+            return None
+
+    def draft_communication(self, decision_summary, recipient_context):
+        """
+        Draft communication to stakeholders.
+        """
+        prompt = f"""
+        Draft a professional communication message based on the recent decision.
+        Decision: {decision_summary}
+        Recipient: {recipient_context.get('name')} ({recipient_context.get('type')})
+        
+        Return a JSON object with:
+        - subject (string)
+        - message_body (string)
+        - priority (string)
+        """
+        
+        messages = [
+            SystemMessage(content="You are a Corporate Communications Agent. You write clear, professional updates."),
+            HumanMessage(content=prompt)
+        ]
+
+        try:
+            response = self._invoke_llm(messages)
+            return self._parse_json_response(response.content)
+        except Exception as e:
+            print(f"Error in draft_communication: {e}")
+            return None
+
     def _get_mock_analysis(self, risk_event):
         return {
             "analysis_summary": f"Mock analysis: High impact detected for {risk_event.get('risk_type')} event.",

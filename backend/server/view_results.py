@@ -7,7 +7,7 @@ from datetime import datetime
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../flask-api')))
 
 from db.database import get_db
-from db.models import RiskEvent, AgentDecision, MitigationAction
+from db.models import RiskEvent, AgentDecision, MitigationAction, AlternativeRoute, StakeholderCommunication
 
 def format_json(data):
     return json.dumps(data, indent=2, default=str)
@@ -53,6 +53,45 @@ def view_results(limit=3):
                 print(f"      - Cost: ${action.estimated_cost_usd} | Time Saved: {action.estimated_time_saved_hours}h | Success Prob: {action.probability_success}%")
         else:
             print(f"⚠️ No Mitigations Proposed")
+
+        # Get Optimization Results (Alternative Routes)
+        print("-" * 20)
+        print(f"🚀 OPTIMIZATION (Alternative Routes):")
+        # Find alts linked to any of the mitigations
+        action_ids = [m.action_id for m in actions]
+        if action_ids:
+            alts = db.query(AlternativeRoute).filter(AlternativeRoute.action_id.in_(action_ids)).all()
+            if alts:
+                for j, alt in enumerate(alts, 1):
+                    route_details = alt.route_ports
+                    if isinstance(route_details, str):
+                        try:
+                            route_details = json.loads(route_details)
+                        except:
+                            route_details = {}
+                    if not isinstance(route_details, dict):
+                        # It might be a list or other JSON type
+                        # For now, wrap in dict if not dict
+                        route_details = {"description": str(route_details)}
+                    
+                    desc = route_details.get("description", "No description")
+                    print(f"   {j}. [Route Score: {alt.score}] Cost: ${alt.estimated_cost_usd} ({alt.estimated_duration_hours}h)")
+                    print(f"      -> {desc}")
+            else:
+                 print("   No optimizations found.")
+        else:
+            print("   No actions to optimize.")
+
+        # Get Communications
+        print("-" * 20)
+        print(f"📧 COMMUNICATIONS (Drafts):")
+        comms = db.query(StakeholderCommunication).filter(StakeholderCommunication.event_id == event.event_id).all()
+        if comms:
+            for k, comm in enumerate(comms, 1):
+                print(f"   {k}. To: {comm.recipient_id} ({comm.recipient_type}) | Subject: {comm.subject}")
+                print(f"      Body: {comm.message[:100]}...")
+        else:
+            print("   No communications drafted.")
         
         print("\n" + "="*80 + "\n")
 
