@@ -15,7 +15,7 @@ load_dotenv(env_path)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../flask-api')))
 
 from db.database import get_db_context
-from db.models import RiskEvent, AgentDecision, MitigationAction, Shipment
+from db.models import RiskEvent, AgentDecision, MitigationAction, Shipment, ShipmentChatView
 from intelligence_layer import IntelligenceLayer
 
 # Configure logging
@@ -148,6 +148,39 @@ def run_agent_loop():
                         # Update Event Status
                         event.status = 'mitigating'
                         event.agent_notes = analysis.get("analysis_summary", "Analyzed by AI")
+
+                        # --- PHASE 5: UPDATE DASHBOARD VIEW (ShipmentChatView) ---
+                        chat_view = db.query(ShipmentChatView).filter(ShipmentChatView.shipment_id == shipment.shipment_id).first()
+                        if not chat_view:
+                            chat_view = ShipmentChatView(
+                                shipment_id=shipment.shipment_id,
+                                origin_location_code=shipment.origin_port_id,
+                                destination_location_code=shipment.destination_port_id,
+                                mode="SEA",  # Defaulting to SEA for now, or derive from shipment
+                                carrier=shipment.current_carrier_id,
+                                shipment_value=shipment.cargo_value_usd,
+                                priority=shipment.priority
+                            )
+                            db.add(chat_view)
+
+                        # Update Risk Metrics
+                        severity_map = {'low': 25, 'medium': 50, 'high': 75, 'critical': 100}
+                        chat_view.risk_type = event.risk_type
+                        chat_view.risk_probability = analysis.get("confidence_score")
+                        chat_view.risk_severity = severity_map.get(event.severity, 0)
+                        chat_view.risk_explanation = analysis.get("analysis_summary")
+                        chat_view.risk_status = "OPEN"
+                        
+                        # Update Mitigation Metrics
+                        if mitigations:
+                            best_mitigation = mitigations[0]
+                            chat_view.recommended_action = best_mitigation.get("action_type")
+                            chat_view.recommendation_source = "AI"
+                            chat_view.estimated_delay_reduction_hours = best_mitigation.get("estimated_time_saved")
+                            chat_view.estimated_extra_cost = best_mitigation.get("estimated_cost")
+                        
+                        chat_view.last_updated_at = datetime.utcnow()
+                        logger.info(f"Updated ShipmentChatView for {shipment.shipment_id}")
                 
                 else:
                     logger.info("No detected risks found. Scanning for predictive patterns...")

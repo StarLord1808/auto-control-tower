@@ -14,6 +14,7 @@ from db.models import (
     AlternativeRoute, StakeholderCommunication, OperationalMetric
 )
 import service
+import auth
 
 # Configure logging
 logging.basicConfig(
@@ -102,15 +103,140 @@ def health_check():
         }), 500
 
 
-# Dashboard endpoint
+# Authentication endpoints
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    """Register a new user"""
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        role = data.get('role', 'viewer')
+        
+        if not username or not email or not password:
+            return jsonify({'error': 'Username, email, and password are required'}), 400
+        
+        user, error = auth.register_user(username, email, password, role)
+        if error:
+            return jsonify({'error': error}), 400
+        
+        return jsonify({
+            'message': 'User registered successfully',
+            'user_id': user.user_id,
+            'username': user.username
+        }), 201
+    except Exception as e:
+        logger.error(f"Error registering user: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """Login user and return JWT token"""
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return jsonify({'error': 'Username and password are required'}), 400
+        
+        result, error = auth.login_user(username, password)
+        if error:
+            return jsonify({'error': error}), 401
+        
+        return jsonify(result), 200
+    except Exception as e:
+        logger.error(f"Error logging in: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/auth/me', methods=['GET'])
+@auth.require_auth
+def get_me():
+    """Get current user information"""
+    try:
+        user_data = auth.get_current_user(request.user['user_id'])
+        if not user_data:
+            return jsonify({'error': 'User not found'}), 404
+        return jsonify(user_data), 200
+    except Exception as e:
+        logger.error(f"Error getting user info: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+# Dashboard endpoints
 @app.route('/api/dashboard/stats', methods=['GET'])
 def get_dashboard_stats():
-    """Get dashboard statistics"""
+    """Get dashboard statistics (legacy endpoint)"""
     try:
         stats = service.get_dashboard_stats()
         return jsonify(stats), 200
     except Exception as e:
         logger.error(f"Error getting dashboard stats: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/dashboard/summary', methods=['GET'])
+@auth.require_auth
+def get_dashboard_summary():
+    """Get enhanced dashboard summary"""
+    try:
+        summary = service.get_dashboard_summary()
+        return jsonify(summary), 200
+    except Exception as e:
+        logger.error(f"Error getting dashboard summary: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/alerts/recent', methods=['GET'])
+@auth.require_auth
+def get_recent_alerts():
+    """Get recent alerts for the alerts panel"""
+    try:
+        limit = int(request.args.get('limit', 10))
+        alerts = service.get_recent_alerts(limit=limit)
+        return jsonify(alerts), 200
+    except Exception as e:
+        logger.error(f"Error getting recent alerts: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/carriers/performance', methods=['GET'])
+@auth.require_auth
+def get_carrier_performance():
+    """Get carrier performance metrics"""
+    try:
+        performance = service.get_carrier_performance()
+        return jsonify(performance), 200
+    except Exception as e:
+        logger.error(f"Error getting carrier performance: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+# Chat bot endpoint
+@app.route('/api/chat/query', methods=['POST'])
+@auth.require_auth
+def chat_query():
+    """Process chat bot query"""
+    try:
+        data = request.get_json()
+        message = data.get('message')
+        
+        if not message:
+            return jsonify({'error': 'Message is required'}), 400
+        
+        user_context = {
+            'user_id': request.user['user_id'],
+            'username': request.user['username'],
+            'role': request.user['role']
+        }
+        
+        response = service.process_chat_query(message, user_context)
+        return jsonify(response), 200
+    except Exception as e:
+        logger.error(f"Error processing chat query: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 

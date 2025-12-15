@@ -7,6 +7,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from datetime import datetime
 
 Base = declarative_base()
@@ -536,3 +537,93 @@ class OperationalMetric(Base):
     cost_saved_usd = Column(Numeric(15, 2))
     customer_satisfaction_score = Column(Numeric(5, 2))
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
+
+
+SCHEMA = "canonical"
+
+
+class ShipmentChatView(Base):
+    """
+    One row = one shipment (latest snapshot).
+    """
+
+    __tablename__ = "shipment_chat_view"
+    __table_args__ = {"schema": SCHEMA}
+
+    # Shipment identity & routing
+
+    shipment_id = Column(String, primary_key=True)
+
+    origin_location_code = Column(String)
+    destination_location_code = Column(String)
+
+    mode = Column(String)              # SEA / AIR / ROAD
+    carrier = Column(String)
+
+    priority = Column(String)          # HIGH / MEDIUM / LOW
+    shipment_value = Column(Numeric)
+
+    # Timeline & status
+
+    planned_departure_at = Column(TIMESTAMP)
+    planned_arrival_at = Column(TIMESTAMP)
+    current_estimated_arrival_at = Column(TIMESTAMP)
+
+    delay_hours = Column(Numeric)      # derived
+    current_status = Column(String)    # IN_TRANSIT / DELAYED / DELIVERED
+
+    # Risk summary (AI output)
+
+    risk_type = Column(String)         # PORT / CUSTOMS / WEATHER / QUALITY
+    risk_probability = Column(Numeric)
+    risk_severity = Column(Numeric)
+    impact_score = Column(Numeric)
+    risk_status = Column(String)       # OPEN / MITIGATED / IGNORED
+
+    risk_explanation = Column(Text)
+
+    # External disruption context
+
+    external_signal_type = Column(String)      # PORT_CONGESTION / WEATHER / STRIKE
+    external_location_code = Column(String)
+    external_severity = Column(Numeric)
+    affected_leg_sequence = Column(Integer)   # nullable
+
+    # Mitigation & recommendation
+
+    recommended_action = Column(String)        # REROUTE / MODE_SWITCH / WAIT
+    recommendation_source = Column(String)     # AI / RULE / HUMAN
+
+    estimated_delay_reduction_hours = Column(Numeric)
+    estimated_extra_cost = Column(Numeric)
+    residual_risk = Column(Numeric)
+
+    # Decision & execution
+
+    decision = Column(String)                  # APPROVED / REJECTED / AUTO_EXECUTED
+    decision_status = Column(String)           # SUCCESS / FAILED / PENDING
+    decided_at = Column(TIMESTAMP)
+    executed_at = Column(TIMESTAMP)
+
+    # Metadata
+    last_updated_at = Column(
+        TIMESTAMP,
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+    data_freshness_minutes = Column(Numeric)
+
+
+# User Authentication
+class User(Base):
+    __tablename__ = 'users'
+    
+    user_id = Column(String(50), primary_key=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), CheckConstraint("role IN ('admin', 'operator', 'viewer')"), default='viewer')
+    is_active = Column(Boolean, default=True)
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
+    last_login = Column(TIMESTAMP)
