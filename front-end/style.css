@@ -1,23 +1,40 @@
-/* CSS Variables - Dark Theme */
+/* CSS Variables - Premium Dark Theme (Shadcn-inspired) */
 :root {
-    --bg-primary: #0F172A;
-    --bg-secondary: #1E293B;
-    --bg-tertiary: #334155;
-    --text-primary: #F1F5F9;
+    --bg-primary: #020817;
+    /* Shadcn Dark Background */
+    --bg-secondary: #0F172A;
+    /* Card Background */
+    --bg-tertiary: #1E293B;
+    /* Muted Background */
+
+    --text-primary: #F8FAFC;
     --text-secondary: #94A3B8;
     --text-muted: #64748B;
 
-    --color-blue: #4A9EFF;
-    --color-green: #10B981;
+    --color-blue: #3B82F6;
+    --color-green: #22C55E;
     --color-red: #EF4444;
     --color-orange: #F59E0B;
     --color-purple: #8B5CF6;
 
-    --border-color: #334155;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    --border-color: #1E293B;
+    --input-bg: #020817;
 
-    --transition: all 0.3s ease;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+
+    --radius: 0.5rem;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
 }
 
 * {
@@ -104,15 +121,20 @@ body {
 
 .btn-primary {
     width: 100%;
-    padding: 0.875rem;
+    padding: 0.5rem 1rem;
+    height: 40px;
     background: var(--color-blue);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
@@ -153,10 +175,16 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 2rem;
-    background: var(--bg-secondary);
+    padding: 0 2rem;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-color);
-    height: 70px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    width: 100%;
 }
 
 .top-bar-left {
@@ -293,11 +321,13 @@ body {
 }
 
 .metric-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius);
     padding: 1.5rem;
     transition: var(--transition);
+    box-shadow: var(--shadow);
 }
 
 .metric-card:hover {
@@ -775,18 +805,21 @@ body {
 }
 
 .mitigation-card {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1.25rem;
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius);
+    padding: 1.5rem;
     transition: var(--transition);
     position: relative;
+    box-shadow: var(--shadow-sm);
 }
 
 .mitigation-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-lg);
     border-color: var(--color-blue);
+    background: rgba(30, 41, 59, 0.6);
 }
 
 .mitigation-header {

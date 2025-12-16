@@ -63,13 +63,31 @@
         <!-- Top Bar -->
         <header class="top-bar">
             <div class="top-bar-left">
-                <div class="logo-small">
-                    <svg width="32" height="32" viewBox="0 0 40 40">
-                        <circle cx="20" cy="20" r="18" fill="none" stroke="#4A9EFF" stroke-width="2" />
-                        <path d="M 20 10 L 20 20 L 28 20" stroke="#4A9EFF" stroke-width="2" fill="none" />
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="8" fill="#4A9EFF" fill-opacity="0.2" />
+                        <path d="M16 8L24 16L16 24L8 16L16 8Z" fill="#4A9EFF" />
                     </svg>
                 </div>
-                <h2>GLOBAL LOGISTICS CONTROL TOWER</h2>
+                <div>
+                    <h2>Autonomous Control Tower</h2>
+                    <div class="flex items-center gap-2" style="display: flex; gap: 8px; align-items: center;">
+                        <span class="status-dot status-active"></span>
+                        <span id="agent-status-text" style="font-size: 11px; color: var(--text-secondary);">Active &
+                            Monitoring</span>
+                    </div>
+                </div>
+                <div
+                    style="margin-left: 20px; padding-left: 20px; border-left: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-blue)"
+                        stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span id="agent-activity-text"
+                        style="font-size: 12px; color: var(--color-blue); font-weight: 500;">Initializing...</span>
+                </div>
             </div>
             <div class="top-bar-right">
                 <div class="search-box">

@@ -740,5 +740,61 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('alerts-toggle')?.addEventListener('click', () => {
         document.querySelector('.alerts-sidebar').classList.toggle('open');
     });
+
+    // Start Agent Status Simulation
+    setInterval(updateAgentStatus, 3000);
+    updateAgentStatus();
 });
+
+// Agent Status Simulation (Ported from AgentStatus.tsx)
+let agentState = {
+    actionsToday: 47,
+    alertsProcessed: 156,
+    mitigationsExecuted: 12,
+    uptimeStart: Date.now() - (24 * 60 * 60 * 1000) // 24 hours ago
+};
+
+function updateAgentStatus() {
+    // Navigate elements (assuming they exist in HTML, relying on IDs we will add)
+    const statusDot = document.querySelector('.status-dot');
+    const statusText = document.getElementById('agent-status-text');
+    const uptimeText = document.getElementById('agent-uptime');
+    const activityText = document.getElementById('agent-activity-text');
+
+    if (!statusDot) return; // Exit if elements not found
+
+    // Simulate random activity
+    if (Math.random() > 0.7) {
+        agentState.actionsToday += 1;
+        statusDot.classList.add('status-active');
+        statusDot.classList.remove('bg-muted-foreground');
+        if (statusText) statusText.textContent = "Active & Monitoring";
+        if (activityText) {
+            const activities = [
+                "Analyzing port congestion...",
+                "Optimizing route for SHP_99...",
+                "Monitoring weather in Suez...",
+                "Processing risk event...",
+                "Updating confidence scores..."
+            ];
+            activityText.textContent = activities[Math.floor(Math.random() * activities.length)];
+            activityText.parentElement.style.opacity = '1';
+        }
+    } else {
+        // Occasionally go to standby visual
+        if (Math.random() > 0.8) {
+            statusDot.classList.remove('status-active');
+            statusDot.classList.add('bg-muted-foreground');
+            if (statusText) statusText.textContent = "Standby";
+            if (activityText) activityText.parentElement.style.opacity = '0.5';
+        }
+    }
+
+    // Update numbers (if we had specific counters in UI, for now just uptime)
+    if (uptimeText) {
+        const diff = Date.now() - agentState.uptimeStart;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        uptimeText.textContent = `${hours}h 59m uptime`; // Mock slightly
+    }
+}
 
