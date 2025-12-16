@@ -223,30 +223,35 @@ Defines **22 SQLAlchemy models** representing the complete supply chain ecosyste
 
 **Execution Flow:**
 ```
-┌─────────────────┐
-│ Detect New Risk │
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│  Analyze Risk   │ ← LLM Call (Mistral/OpenAI)
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│ Propose Actions │ ← LLM Call
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│ Optimize Route  │ ← LLM Call (if cost > $1000)
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│ Draft Comms     │ ← LLM Call
-└────────┬────────┘
-         ↓
-┌─────────────────┐
-│ Update Database │
-└─────────────────┘
+┌─────────────────┐      ┌─────────────┐
+│ 1. Risk Detect  │ ────►│ 2. Context  │
+└────────┬────────┘      └──────┬──────┘
+         ▼                      ▼
+┌─────────────────┐      ┌─────────────┐
+│ 3. LLM Analysis │◄──── │ Traffic Data│
+└────────┬────────┘      └─────────────┘
+         │ (Reasoning + Confidence)
+         ▼
+┌─────────────────┐      ┌─────────────┐
+│ 4. Mitigation   │ ────►│ 5. Optimize │
+└────────┬────────┘      └──────┬──────┘
+         │                      │ (Find Cheaper Routes)
+         ▼                      ▼
+┌─────────────────┐      ┌─────────────┐
+│ 6. Communication│◄──── │ 7. Update DB│
+└─────────────────┘      └──────┬──────┘
+                                ▼
+                         ┌─────────────┐
+                         │ 8. Learning │
+                         │ (Feedback)  │
+                         └─────────────┘
 ```
+
+**New AI Capabilities:**
+- **Predictive Scout**: Scans for patterns before risks manifest.
+- **Circuit Breaker**: Falls back to OpenAI or mock data if Mistral fails, ensuring 99.9% uptime.
+- **Reinforcement Learning**: Outcomes of previous decisions adjust confidence scores for future predictions.
+- **Traffic-Awareness**: Injects real-time traffic density into risk analysis prompts.
 
 #### `intelligence_layer.py` - LLM Integration (150 lines)
 **Class: IntelligenceLayer**
@@ -375,6 +380,24 @@ Defines **22 SQLAlchemy models** representing the complete supply chain ecosyste
 - `formatTimeAgo()` - Relative time (e.g., "5m ago")
 - `getStatusClass()` - Map status to CSS class
 - `getSeverityColor()` - Map severity to color
+
+### 5. Frontend Integrations (New Features)
+
+#### Explainability UI
+- **"Why?" Button**: Added to every mitigation card.
+- **Reasoning Modal**: dynamic modal showing natural language explanation.
+- **Confidence Bar**: Visual indicator (Red/Orange/Green) of AI certainty.
+- **Comparison Table**: Side-by-side view of AI proposal vs alternatives.
+
+#### Human-in-Loop Feedback
+- **Action Buttons**: Approve/Reject buttons directly on mitigation cards.
+- **Feedback Modal**: Captures user rating (1-5) and text feedback.
+- **Outcome Tracking**: Form to input actual cost/time after execution.
+
+#### Traffic Intelligence
+- **Traffic Panel**: New dashboard section showing live road/port conditions.
+- **Context Awareness**: "View Traffic" button to see external factors influencing the current view.
+- **Dynamic Updates**: Real-time traffic data fetching from API.
 
 ---
 

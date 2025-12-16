@@ -484,13 +484,26 @@ body {
     padding: 1rem 0;
 }
 
-/* Alerts Sidebar */
+/* Alerts Sidebar - Collapsible Drawer */
 .alerts-sidebar {
-    width: 320px;
+    position: fixed;
+    top: 70px;
+    /* Below top bar */
+    right: -340px;
+    /* Hidden by default */
+    width: 340px;
+    height: calc(100vh - 70px);
     background: var(--bg-secondary);
     border-left: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    z-index: 900;
+    transition: right 0.3s ease;
+    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.alerts-sidebar.open {
+    right: 0;
 }
 
 .alerts-header {

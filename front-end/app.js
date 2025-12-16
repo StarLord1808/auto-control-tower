@@ -110,7 +110,7 @@ async function loadDashboardData() {
 
 async function loadMitigations() {
     try {
-        const mitigations = await api.get('/mitigation-actions?status=proposed&limit=6');
+        const mitigations = await api.get(`/mitigation-actions?status=proposed&limit=6&_t=${Date.now()}`);
         const container = document.getElementById('mitigations-grid');
         container.innerHTML = '';
 
@@ -274,8 +274,22 @@ async function submitFeedback() {
         }
 
         document.getElementById('feedback-modal').style.display = 'none';
-        loadMitigations(); // Refresh list
-        loadAlerts(); // Refresh alerts
+
+        // Optimistic UI update: Remove the card immediately
+        const buttons = document.querySelectorAll(`button[onclick*="'${currentFeedbackActionId}'"]`);
+        if (buttons.length > 0) {
+            const card = buttons[0].closest('.mitigation-card');
+            if (card) {
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            }
+        }
+
+        // Refresh data after a short delay to ensure DB commit
+        setTimeout(() => {
+            loadMitigations();
+            loadAlerts();
+        }, 500);
     } catch (error) {
         console.error('Error submitting feedback:', error);
         alert('Error: ' + error.message);
@@ -401,6 +415,10 @@ async function loadAlerts() {
 
         const alertsList = document.getElementById('alerts-list');
         alertsList.innerHTML = '';
+
+        // Update badge
+        const badge = document.getElementById('alerts-badge');
+        if (badge) badge.textContent = alerts.length;
 
         alerts.forEach(alert => {
             const alertItem = document.createElement('div');
@@ -717,5 +735,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // View Traffic
     document.getElementById('view-traffic-btn')?.addEventListener('click', showTraffic);
+
+    // Toggle Alerts Sidebar
+    document.getElementById('alerts-toggle')?.addEventListener('click', () => {
+        document.querySelector('.alerts-sidebar').classList.toggle('open');
+    });
 });
 
