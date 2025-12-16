@@ -15,6 +15,14 @@ from db.models import (
 )
 import service
 import auth
+import service_feedback
+
+# Add server directory to path for importing learning engine and health checks
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../server')))
+import learning_engine
+import llm_health
 
 # Configure logging
 logging.basicConfig(
@@ -512,6 +520,7 @@ def get_latest_operational_metrics():
         return jsonify({'error': str(e)}), 500
 
 
+
 # Port Congestion endpoints
 @app.route('/api/port-congestion', methods=['GET'])
 def get_port_congestion():
@@ -533,6 +542,155 @@ def get_high_congestion_ports():
         return jsonify([serialize(p) for p in ports]), 200
     except Exception as e:
         logger.error(f"Error getting high congestion ports: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+# --- Enhancement 1 & 2: Feedback and Learning Endpoints ---
+
+@app.route('/api/mitigation-actions/<action_id>/approve', methods=['POST'])
+@auth.require_auth
+def approve_mitigation_endpoint(action_id):
+    """Approve a mitigation action"""
+    try:
+        data = request.get_json() or {}
+        feedback = data.get('feedback')
+        rating = data.get('rating')
+        user_id = request.user['user_id']
+        
+        action, error = service_feedback.approve_mitigation(action_id, user_id, feedback, rating)
+        if error:
+            return jsonify({'error': error}), 400
+            
+        return jsonify(serialize(action)), 200
+    except Exception as e:
+        logger.error(f"Error approving mitigation: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/mitigation-actions/<action_id>/reject', methods=['POST'])
+@auth.require_auth
+def reject_mitigation_endpoint(action_id):
+    """Reject a mitigation action"""
+    try:
+        data = request.get_json() or {}
+        reason = data.get('reason')
+        user_id = request.user['user_id']
+        
+        if not reason:
+            return jsonify({'error': 'Rejection reason is required'}), 400
+            
+        action, error = service_feedback.reject_mitigation(action_id, user_id, reason)
+        if error:
+            return jsonify({'error': error}), 400
+            
+        return jsonify(serialize(action)), 200
+    except Exception as e:
+        logger.error(f"Error rejecting mitigation: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/mitigation-actions/<action_id>/outcome', methods=['POST'])
+@auth.require_auth
+def submit_outcome_endpoint(action_id):
+    """Submit actual outcome for learning"""
+    try:
+        data = request.get_json()
+        actual_cost = data.get('actual_cost')
+        actual_time_saved = data.get('actual_time_saved')
+        rating = data.get('rating')
+        feedback = data.get('feedback')
+        
+        result, error = service_feedback.submit_outcome_feedback(
+            action_id, actual_cost, actual_time_saved, rating, feedback
+        )
+        if error:
+            return jsonify({'error': error}), 400
+            
+        return jsonify(result), 200
+    except Exception as e:
+        logger.error(f"Error submitting outcome: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/analytics/learning', methods=['GET'])
+def get_learning_analytics_endpoint():
+    """Get learning analytics stats"""
+    try:
+        action_type = request.args.get('action_type')
+        stats = service_feedback.get_learning_analytics(action_type)
+        return jsonify(stats), 200
+    except Exception as e:
+        logger.error(f"Error getting learning analytics: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/analytics/insights', methods=['GET'])
+def get_learning_insights_endpoint():
+    """Get advanced learning insights"""
+    try:
+        days = int(request.args.get('days', 30))
+        insights = learning_engine.get_learning_insights(days)
+        return jsonify(insights), 200
+    except Exception as e:
+        logger.error(f"Error getting learning insights: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+# --- Enhancement 3: Explainability Endpoints ---
+
+@app.route('/api/decisions/<decision_id>/explain', methods=['GET'])
+def explain_decision(decision_id):
+    """Get explanation for a specific decision"""
+    try:
+        with get_db_context() as db:
+            decision = db.query(AgentDecision).filter(AgentDecision.decision_id == decision_id).first()
+            if not decision:
+                return jsonify({'error': 'Decision not found'}), 404
+            
+            return jsonify({
+                'decision_id': decision.decision_id,
+                'type': decision.decision_type,
+                'reasoning': decision.reasoning,
+                'confidence_score': float(decision.confidence_score) if decision.confidence_score else 0,
+                'created_at': decision.created_at.isoformat()
+            }), 200
+    except Exception as e:
+        logger.error(f"Error explaining decision: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+# --- Enhancement 4: Traffic Data Endpoints ---
+
+@app.route('/api/traffic/current', methods=['GET'])
+def get_current_traffic():
+    """Get current traffic data with optional location filter"""
+    try:
+        location_id = request.args.get('location_id')
+        from db.models import TrafficData
+        
+        with get_db_context() as db:
+            query = db.query(TrafficData)
+            if location_id:
+                query = query.filter(TrafficData.route_segment_id == location_id)
+            
+            # Get latest 100 records
+            traffic = query.order_by(TrafficData.timestamp.desc()).limit(100).all()
+            return jsonify([serialize(t) for t in traffic]), 200
+    except Exception as e:
+        logger.error(f"Error getting traffic data: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+# --- Enhancement 5: LLM Health Status ---
+
+@app.route('/api/health/llm', methods=['GET'])
+def get_llm_health():
+    """Get health status of LLM providers"""
+    try:
+        status = llm_health.get_llm_status()
+        return jsonify(status), 200
+    except Exception as e:
+        logger.error(f"Error getting LLM health: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 

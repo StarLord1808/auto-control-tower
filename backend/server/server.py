@@ -15,7 +15,7 @@ load_dotenv(env_path)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../flask-api')))
 
 from db.database import get_db_context
-from db.models import RiskEvent, AgentDecision, MitigationAction, Shipment, ShipmentChatView
+from db.models import RiskEvent, AgentDecision, MitigationAction, Shipment, ShipmentChatView, TrafficData
 from intelligence_layer import IntelligenceLayer
 
 # Configure logging
@@ -59,10 +59,26 @@ def run_agent_loop():
                             "customer_name": shipment.customer_id
                         }
                         
+                        # Get Traffic Context for current location
+                        traffic_context = {}
+                        if shipment.current_port_id:
+                            traffic_record = db.query(TrafficData).filter(
+                                TrafficData.route_segment_id == shipment.current_port_id
+                            ).order_by(TrafficData.timestamp.desc()).first()
+                            
+                            if traffic_record:
+                                traffic_context = {
+                                    'congestion_level': traffic_record.congestion_level,
+                                    'average_speed_kmh': float(traffic_record.average_speed_kmh) if traffic_record.average_speed_kmh else 0,
+                                    'incident_count': traffic_record.incidents_count,
+                                    'weather_condition': traffic_record.weather_condition
+                                }
+
                         # A. Analyze Risk
                         analysis = agent.analyze_risk(
                             {"description": event.description, "risk_type": event.risk_type},
-                            context
+                            context,
+                            traffic_context=traffic_context
                         )
                         
                         # Record Decision (Risk Assessment)

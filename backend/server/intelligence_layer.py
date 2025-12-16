@@ -1,8 +1,15 @@
-import os
 import json
-from langchain_openai import ChatOpenAI
+import os
+import time
+from typing import Dict, List, Optional
+from langchain_community.chat_models import ChatOpenAI
 from langchain_mistralai import ChatMistralAI
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
+
+# Import Circuit Breaker and Learning Engine
+from circuit_breaker import CircuitBreaker, call_with_circuit_breaker
+from learning_engine import recommend_confidence_adjustment
+from llm_health import log_health_metrics, get_llm_status
 from prompts_constants import RISK_ANALYSIS_SYSTEM_PROMPT, MITIGATION_SYSTEM_PROMPT
 
 class IntelligenceLayer:
@@ -32,32 +39,87 @@ class IntelligenceLayer:
             print("WARNING: OPENAI_API_KEY not found.")
             self.openai_client = None
 
-    def _invoke_llm(self, messages):
+        # Initialize Circuit Breakers
+        self.cb_mistral = CircuitBreaker("mistral_ai", failure_threshold=3, timeout_seconds=60)
+        self.cb_openai = CircuitBreaker("openai", failure_threshold=3, timeout_seconds=60)
+        
+        # Log initial health status
+        status = get_llm_status()
+        log_health_metrics(status)
+
+    def _invoke_llm(self, messages, context: Optional[Dict] = None):
         """
-        Try Mistral -> OpenAI -> Raise Exception
+        Try Mistral -> OpenAI -> Mock Fallback
+        Uses Circuit Breaker pattern for fault tolerance
         """
         errors = []
-
-        # Attempt 1: Mistral
+        
+        # 1. Try Mistral
         if self.mistral_client:
             try:
-                print("Attempting analysis with Mistral AI...")
-                return self.mistral_client.invoke(messages)
+                def call_mistral():
+                    return self.mistral_client.invoke(messages)
+                    
+                response = call_with_circuit_breaker(self.cb_mistral, call_mistral)
+                return response
             except Exception as e:
-                print(f"Mistral AI failed: {e}")
-                errors.append(f"Mistral: {str(e)}")
-
-        # Attempt 2: OpenAI
+                errors.append(f"Mistral Error: {str(e)}")
+                # Continue to fallback
+        
+        # 2. Try OpenAI (Fallback 1)
         if self.openai_client:
             try:
-                print("Falling back to OpenAI...")
-                return self.openai_client.invoke(messages)
+                def call_openai():
+                    return self.openai_client.invoke(messages)
+                    
+                response = call_with_circuit_breaker(self.cb_openai, call_openai)
+                return response
             except Exception as e:
-                print(f"OpenAI failed: {e}")
-                errors.append(f"OpenAI: {str(e)}")
+                errors.append(f"OpenAI Error: {str(e)}")
+                # Continue to fallback
         
-        # If we get here, both failed or neither is configured
-        raise Exception(f"All LLM providers failed: {'; '.join(errors)}")
+        # 3. Graceful Degradation (Mock Response)
+        print(f"All LLMs failed/unavailable. Using fallback. Errors: {'; '.join(errors)}")
+        return self._get_fallback_response(messages, context)
+
+    def _get_fallback_response(self, messages, context):
+        """Generate a structured mock response when all LLMs fail"""
+        # Determine intent from messages
+        system_msg = next((m.content for m in messages if isinstance(m, SystemMessage)), "")
+        
+        if "Analyze the following supply chain risk" in system_msg:
+            return type('obj', (object,), {
+                'content': json.dumps({
+                    "root_cause": "System fallback due to LLM unavailability",
+                    "severity": "medium",
+                    "impact_analysis": "Unable to calculate precise impact at this time.",
+                    "mitigation_suggestion": "Manual review recommended.",
+                    "confidence_score": 50,
+                    "reasoning": "Automated analysis unavailable."
+                })
+            })
+        elif "Mitigation Strategy" in system_msg:
+             return type('obj', (object,), {
+                'content': json.dumps({
+                    "mitigation_actions": [
+                        {
+                            "type": "Consult Logistics Manager",
+                            "description": "LLM services are down. Please consult logistics manager for manual intervention.",
+                            "estimated_cost": 0,
+                            "estimated_time_saved": 0,
+                            "probability_success": 50
+                        }
+                    ]
+                })
+            })
+            
+        # Default generic response
+        return type('obj', (object,), {
+            'content': json.dumps({
+                "error": "LLM services unavailable",
+                "default_action": "Manual Review"
+            })
+        })
 
     def _parse_json_response(self, content):
         """
@@ -91,7 +153,7 @@ class IntelligenceLayer:
             # Re-raise original error if heuristic fails
             raise
 
-    def analyze_risk(self, risk_event, shipment_context):
+    def analyze_risk(self, risk_event, shipment_context, traffic_context=None):
         """
         Analyze a risk event using the LLM.
         """

@@ -6,17 +6,17 @@
     --text-primary: #F1F5F9;
     --text-secondary: #94A3B8;
     --text-muted: #64748B;
-    
+
     --color-blue: #4A9EFF;
     --color-green: #10B981;
     --color-red: #EF4444;
     --color-orange: #F59E0B;
     --color-purple: #8B5CF6;
-    
+
     --border-color: #334155;
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-    
+
     --transition: all 0.3s ease;
 }
 
@@ -734,14 +734,286 @@ body {
     .sidebar {
         display: none;
     }
-    
+
     .metrics-section {
         grid-template-columns: 1fr;
     }
-    
+
     .chat-widget {
         width: calc(100% - 2rem);
         right: 1rem;
         bottom: 1rem;
     }
+}
+
+/* Mitigation Section */
+.mitigations-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.mitigations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.mitigation-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: var(--transition);
+    position: relative;
+}
+
+.mitigation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--color-blue);
+}
+
+.mitigation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.mitigation-type {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.mitigation-status {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(74, 158, 255, 0.2);
+    color: var(--color-blue);
+}
+
+.mitigation-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.mitigation-metrics {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.metric-item svg {
+    color: var(--text-muted);
+}
+
+.mitigation-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.btn-approve {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--color-green);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.btn-approve:hover {
+    background: rgba(16, 185, 129, 0.3);
+}
+
+.btn-reject {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--color-red);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-reject:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.btn-explain {
+    background: rgba(74, 158, 255, 0.1);
+    color: var(--color-blue);
+    border: 1px solid rgba(74, 158, 255, 0.2);
+    margin-left: auto;
+}
+
+.btn-explain:hover {
+    background: rgba(74, 158, 255, 0.2);
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: var(--bg-secondary);
+    margin: 10% auto;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: var(--shadow-lg);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.close-modal,
+.close-feedback,
+.close-traffic {
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+}
+
+/* Reasoning Modal Content */
+.analysis-section,
+.confidence-section,
+.alternatives-section {
+    margin-bottom: 1.5rem;
+}
+
+.analysis-section h4,
+.confidence-section h4,
+.alternatives-section h4 {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.confidence-bar-container {
+    height: 8px;
+    background: var(--bg-primary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.confidence-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-blue), var(--color-green));
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+#modal-alternatives {
+    list-style: none;
+}
+
+#modal-alternatives li {
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Feedback Form */
+.form-select,
+textarea {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.form-select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-blue);
 }

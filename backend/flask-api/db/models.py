@@ -464,10 +464,20 @@ class MitigationAction(Base):
     proposed_by = Column(String(100))
     approved_by = Column(String(100))
     
+    # Enhancement 1: Human-in-Loop Feedback
+    actual_cost_usd = Column(Numeric(15, 2))  # Actual cost incurred after execution
+    actual_time_saved_hours = Column(Integer)  # Actual time saved vs predicted
+    human_feedback = Column(Text)  # Human feedback on the mitigation
+    feedback_rating = Column(Integer, CheckConstraint("feedback_rating >= 1 AND feedback_rating <= 5"))  # 1-5 rating
+    approved_at = Column(TIMESTAMP)  # When human approved/rejected
+    approved_by_user_id = Column(String(50), ForeignKey('users.user_id'))  # User who approved/rejected
+    
     # Relationships
     event = relationship('RiskEvent', back_populates='mitigation_actions')
     shipment = relationship('Shipment', back_populates='mitigation_actions')
     alternative_routes = relationship('AlternativeRoute', back_populates='action')
+    feedback_history = relationship('FeedbackHistory', back_populates='action')
+    outcome_metrics = relationship('OutcomeMetric', back_populates='action')
 
 
 class AlternativeRoute(Base):
@@ -613,6 +623,49 @@ class ShipmentChatView(Base):
     )
 
     data_freshness_minutes = Column(Numeric)
+
+
+# Enhancement 1 & 2: Feedback and Learning Models
+class FeedbackHistory(Base):
+    """Track human feedback and confidence score adjustments over time"""
+    __tablename__ = 'feedback_history'
+    
+    feedback_id = Column(String(50), primary_key=True)
+    action_id = Column(String(50), ForeignKey('mitigation_actions.action_id'), index=True)
+    decision_id = Column(String(50), ForeignKey('agent_decisions.decision_id'), index=True)
+    predicted_cost = Column(Numeric(15, 2))
+    actual_cost = Column(Numeric(15, 2))
+    predicted_time_saved = Column(Integer)
+    actual_time_saved = Column(Integer)
+    confidence_score_before = Column(Numeric(5, 2))
+    confidence_score_after = Column(Numeric(5, 2))
+    adjustment_reason = Column(Text)
+    created_at = Column(TIMESTAMP, default=datetime.utcnow, index=True)
+    
+    # Relationships
+    action = relationship('MitigationAction', back_populates='feedback_history')
+
+
+class OutcomeMetric(Base):
+    """Track actual outcomes vs predictions for reinforcement learning"""
+    __tablename__ = 'outcome_metrics'
+    
+    outcome_id = Column(String(50), primary_key=True)
+    action_id = Column(String(50), ForeignKey('mitigation_actions.action_id'), index=True)
+    shipment_id = Column(String(50), ForeignKey('shipments.shipment_id'), index=True)
+    predicted_cost_usd = Column(Numeric(15, 2))
+    actual_cost_usd = Column(Numeric(15, 2))
+    cost_variance_percent = Column(Numeric(5, 2))  # (actual - predicted) / predicted * 100
+    predicted_time_saved_hours = Column(Integer)
+    actual_time_saved_hours = Column(Integer)
+    time_variance_percent = Column(Numeric(5, 2))  # (actual - predicted) / predicted * 100
+    predicted_confidence_score = Column(Numeric(5, 2))
+    outcome_success = Column(Boolean)  # Whether mitigation achieved its goal
+    learning_weight = Column(Numeric(5, 2), default=1.0)  # Weight for this outcome in learning algorithm
+    created_at = Column(TIMESTAMP, default=datetime.utcnow, index=True)
+    
+    # Relationships
+    action = relationship('MitigationAction', back_populates='outcome_metrics')
 
 
 # User Authentication

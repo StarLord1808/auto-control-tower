@@ -3,13 +3,20 @@
 ## 🌐 Overview
 The **Autonomous Control Tower** is a sophisticated AI-powered logistics platform that provides end-to-end visibility and autonomous management of global supply chain operations. The system combines real-time monitoring, predictive risk analysis, and AI-driven decision-making to optimize shipment tracking, mitigate disruptions, and ensure on-time delivery.
 
-### Key Features
-- 🤖 **AI-Powered Risk Analysis** - Multi-agent system for predictive risk assessment
-- 📊 **Real-Time Dashboard** - Modern web interface with live metrics and visualizations
-- 🔐 **Secure Authentication** - JWT-based user management with role-based access
-- 💬 **AI Chat Bot** - Natural language interface for querying shipment data
-- 🚨 **Automated Alerts** - Real-time notifications for critical events
-- 📈 **Performance Analytics** - Carrier performance tracking and KPI monitoring
+## Key Features
+- **Real-time Shipment Tracking**: Monitor shipment status and location.
+- **AI-Powered Risk Analysis**: Predictive risk detection using Mistral/OpenAI.
+- **Intelligent Rerouting**: Automated mitigation proposals for delayed shipments.
+- **Port Congestion Monitoring**: Real-time insights into global port status.
+- **Interactive Dashboard**: Visual analytics and chat interface.
+- **(New) Human-in-Loop Feedback**: Approve/reject AI decisions to improve future accuracy.
+- **(New) Explainable AI**: View reasoning and confidence scores for every recommendation.
+- **(New) Traffic-Awareness**: Integrated traffic data for context-aware routing.
+
+## Documentation
+- **[Installation Guide](INSTALL.md)**
+- **[API Documentation](API_DOCS.md)**
+- **[Enhancements & Architecture](docs/ENHANCEMENTS.md)** (New!)
 
 ---
 
