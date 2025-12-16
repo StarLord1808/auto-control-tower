@@ -346,6 +346,35 @@ def get_shipment_risk_events(shipment_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/risk-events/process', methods=['POST'])
+def process_risk_event_endpoint():
+    """Process a risk event with the AI agent (triggered by listener)"""
+    try:
+        data = request.get_json()
+        event_id = data.get('event_id')
+        
+        if not event_id:
+            return jsonify({'error': 'event_id is required'}), 400
+        
+        # Import the server processing function
+        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../server')))
+        from server import process_risk_event
+        
+        result = process_risk_event(event_id)
+        
+        if 'error' in result:
+            return jsonify(result), 400
+        
+        return jsonify(result), 200
+    except ImportError as ie:
+        logger.error(f"Error importing process_risk_event: {str(ie)}")
+        return jsonify({'error': 'Server module not available'}), 500
+    except Exception as e:
+        logger.error(f"Error processing risk event: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+
 # Agent Decision endpoints
 @app.route('/api/agent-decisions', methods=['GET'])
 def get_agent_decisions():
