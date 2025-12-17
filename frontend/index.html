@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuTo Control Tower</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="logo-area">
+            <svg class="logo-icon w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+            <span>AuTo Control Tower</span>
+        </div>
+        <div class="user-area flex items-center gap-2">
+            <span class="text-xs text-muted">Logged in as</span>
+            <span id="user-name" class="font-mono text-sm">Guest</span>
+            <button id="logout-btn" class="action-btn action-btn-secondary text-xs">Logout</button>
+        </div>
+    </header>
+
+    <!-- Login Page -->
+    <div id="login-page" class="flex items-center justify-center h-full" style="min-height: 80vh; display: none;">
+        <div class="glass-card p-6" style="width: 100%; max-width: 400px;">
+            <h2 class="text-xl font-bold mb-4">Login</h2>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Username"
+                    class="w-full mb-4 p-2 bg-transparent border rounded" required>
+                <input type="password" id="password" placeholder="Password"
+                    class="w-full mb-4 p-2 bg-transparent border rounded" required>
+                <button type="submit" class="action-btn action-btn-primary w-full">Login</button>
+            </form>
+            <p class="mt-4 text-sm text-center">
+                <a href="#" id="show-register" class="text-primary hover:underline">Register here</a>
+            </p>
+        </div>
+        <div id="register-form" style="display: none;" class="glass-card p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold mb-4">Register</h2>
+            <form id="reg-form-inner">
+                <input type="text" id="reg-username" placeholder="Username"
+                    class="w-full mb-4 p-2 bg-transparent border rounded" required>
+                <input type="email" id="reg-email" placeholder="Email"
+                    class="w-full mb-4 p-2 bg-transparent border rounded" required>
+                <input type="password" id="reg-password" placeholder="Password"
+                    class="w-full mb-4 p-2 bg-transparent border rounded" required>
+                <button type="submit" class="action-btn action-btn-primary w-full">Register</button>
+            </form>
+            <p class="mt-4 text-sm text-center">
+                <a href="#" id="show-login" class="text-primary hover:underline">Back to Login</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboard-page" class="dashboard-container" style="display: none;">
+
+        <!-- Agent Status -->
+        <div class="glass-card agent-status-bar glow-effect">
+            <div class="agent-indicator">
+                <span class="status-dot status-active"></span>
+                <div class="flex flex-col">
+                    <span class="font-semibold text-sm">AuTo Agent Active</span>
+                    <span id="agent-activity-text" class="agent-activity">Monitoring global supply chain
+                        events...</span>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-xs text-muted">UPTIME</div>
+                <div id="agent-uptime" class="font-mono text-sm">24h 12m</div>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="grid-cols-4">
+            <div class="glass-card metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Total Shipments</span>
+                    <svg class="metric-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="metric-value" id="total-shipments">--</div>
+                <div class="metric-subtitle">Currently tracked</div>
+            </div>
+            <div class="glass-card metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Critical Alerts</span>
+                    <svg class="metric-icon text-destructive" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                        </path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+                <div class="metric-value text-destructive" id="critical-alerts">--</div>
+                <div class="metric-subtitle">Requires attention</div>
+            </div>
+            <div class="glass-card metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">On-Time Rate</span>
+                    <svg class="metric-icon" style="color: hsl(var(--status-active))" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <div class="metric-value" style="color: hsl(var(--status-active))" id="on-time-rate">--%</div>
+                <div class="metric-subtitle">Last 30 days</div>
+            </div>
+            <div class="glass-card metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Savings</span>
+                    <svg class="metric-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <div class="metric-value" id="cost-savings">$0</div>
+                <div class="metric-subtitle">YTD Mitigations</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+
+            <!-- Shipments Table (Col 7) -->
+            <div class="glass-card col-span-7" style="min-height: 500px; display: flex; flex-direction: column;">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 17L12 22L22 17"></path>
+                            <path d="M2 12L12 17L22 12"></path>
+                            <path d="M2 7L12 12L22 7"></path>
+                        </svg>
+                        Active Shipments
+                    </h3>
+                </div>
+                <div class="table-container flex-1 scrollbar-thin">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Shipment ID</th>
+                                <th>Route</th>
+                                <th>Status</th>
+                                <th>Risk</th>
+                                <th>ETA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shipments-tbody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Alerts Panel (Col 5) -->
+            <div class="glass-card col-span-5" style="max-height: 500px; display: flex; flex-direction: column;">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg class="w-5 h-5 text-destructive" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        Risk Alerts
+                    </h3>
+                    <span class="risk-badge risk-high" id="alerts-count">0 Active</span>
+                </div>
+                <div class="flex-1 overflow-y-auto scrollbar-thin" id="alerts-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Mitigation Simulator (Col 6) -->
+            <div class="glass-card col-span-6" id="mitigation-panel"
+                style="min-height: 400px; display: flex; flex-direction: column;">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="22" y1="12" x2="18" y2="12"></line>
+                            <line x1="6" y1="12" x2="2" y2="12"></line>
+                            <line x1="12" y1="6" x2="12" y2="2"></line>
+                            <line x1="12" y1="22" x2="12" y2="18"></line>
+                        </svg>
+                        Mitigation Simulator
+                    </h3>
+                </div>
+                <div class="p-6 flex-1 flex items-center justify-center text-muted-foreground text-center"
+                    id="mitigation-empty-state">
+                    <div>
+                        <svg class="w-12 h-12 mx-auto mb-3 opacity-30" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="6"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                        </svg>
+                        <p>Select an alert to view mitigation options</p>
+                    </div>
+                </div>
+                <div id="mitigation-content" class="p-4 hidden flex-1 flex flex-col gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Communication Log (Col 6) -->
+            <div class="glass-card col-span-6" style="min-height: 400px;">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Communication Log
+                    </h3>
+                </div>
+                <div class="p-4 h-full">
+                    <div class="glass-card p-4 h-full" style="background: hsl(var(--background)/0.5);">
+                        <div id="comm-log-list" class="flex flex-col gap-3 h-full overflow-y-auto scrollbar-thin">
+                            <div class="text-xs text-muted text-center italic">No recent communications</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modals (Hidden) -->
+    <div id="feedback-modal" class="glass-card p-6 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+        style="display: none; z-index: 100;">
+        <h3 class="panel-title mb-4">Confirm Action</h3>
+        <textarea id="feedback-text" class="w-full bg-transparent border rounded p-2 mb-4"
+            placeholder="Optional reasoning..."></textarea>
+        <div class="flex justify-end gap-2">
+            <button class="action-btn action-btn-secondary close-feedback-btn">Cancel</button>
+            <button id="submit-feedback-btn" class="action-btn action-btn-primary">Confirm</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
