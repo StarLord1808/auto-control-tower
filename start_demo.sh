@@ -6,17 +6,19 @@
 
 # Export PYTHONPATH
 export PYTHONPATH=$PYTHONPATH:$(pwd)
+# Ensure backend module is importable
+export PYTHONPATH=$PYTHONPATH:$(pwd)/backend
 
 echo "Starting Backend API on port 5000..."
-python3 -u backend/flask-api/main_app.py > backend.log 2>&1 &
+python3 -u backend/api/main_app.py > backend.log 2>&1 &
 BACKEND_PID=$!
 
 echo "Starting DB Listener..."
-python3 -u backend/flask_api/listener.py > listener.log 2>&1 &
+python3 -u backend/listener/listener.py > listener.log 2>&1 &
 LISTENER_PID=$!
 
 echo "Starting Frontend on port 8000..."
-cd front-end
+cd frontend
 python3 -m http.server 8000 > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 cd ..

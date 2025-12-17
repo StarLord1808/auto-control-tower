@@ -7,22 +7,20 @@ from flask_cors import CORS
 from datetime import datetime
 import logging
 
-from constants import FLASK_HOST, FLASK_PORT, FLASK_DEBUG, CORS_ORIGINS
-from db.database import init_db, close_db, get_db_context
-from db.models import (
+from backend.shared.constants import FLASK_HOST, FLASK_PORT, FLASK_DEBUG, CORS_ORIGINS
+from backend.shared.db.database import init_db, close_db, get_db_context
+from backend.shared.db.models import (
     Shipment, RiskEvent, AgentDecision, MitigationAction,
-    AlternativeRoute, StakeholderCommunication, OperationalMetric
+    AlternativeRoute, StakeholderCommunication, OperationalMetric,
+    ShipmentChatView
 )
-import service
-import auth
-import service_feedback
+import backend.api.service as service
+import backend.api.auth as auth
+import backend.api.service_feedback as service_feedback
 
-# Add server directory to path for importing learning engine and health checks
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../server')))
-import learning_engine
-import llm_health
+# Import learning engine and health checks
+import backend.agent.learning_engine as learning_engine
+import backend.agent.llm_health as llm_health
 
 # Configure logging
 logging.basicConfig(
@@ -248,6 +246,21 @@ def chat_query():
         return jsonify({'error': str(e)}), 500
 
 
+# Enhancement: Shipment Chat View Endpoint
+@app.route('/api/shipments/chat-view', methods=['GET'])
+def get_shipment_chat_view_endpoint():
+    """Get summarized shipment data for the dashboard"""
+    try:
+        limit = int(request.args.get('limit', 100))
+        offset = int(request.args.get('offset', 0))
+        
+        data = service.get_shipment_chat_view(limit=limit, offset=offset)
+        return jsonify([serialize(item) for item in data]), 200
+    except Exception as e:
+        logger.error(f"Error getting shipment chat view: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
 # Shipment endpoints
 @app.route('/api/shipments', methods=['GET'])
 def get_shipments():
@@ -356,9 +369,8 @@ def process_risk_event_endpoint():
         if not event_id:
             return jsonify({'error': 'event_id is required'}), 400
         
-        # Import the server processing function
-        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../server')))
-        from server import process_risk_event
+        # Import the agent processing function
+        from backend.agent.server import process_risk_event
         
         result = process_risk_event(event_id)
         
@@ -695,7 +707,7 @@ def get_current_traffic():
     """Get current traffic data with optional location filter"""
     try:
         location_id = request.args.get('location_id')
-        from db.models import TrafficData
+        from backend.shared.db.models import TrafficData
         
         with get_db_context() as db:
             query = db.query(TrafficData)

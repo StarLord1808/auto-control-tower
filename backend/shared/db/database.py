@@ -7,7 +7,7 @@ from sqlalchemy.pool import QueuePool
 from contextlib import contextmanager
 import logging
 
-from constants import DATABASE_URI
+from backend.shared.constants import DATABASE_URI
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def init_db():
     """
     Initialize database - create all tables
     """
-    from db.models import Base
+    from backend.shared.db.models import Base
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
 

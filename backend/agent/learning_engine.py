@@ -10,10 +10,12 @@ from sqlalchemy import func
 
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../flask-api')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../api')))
 
-from db.database import get_db_context
-from db.models import OutcomeMetric, MitigationAction, AgentDecision
+from backend.shared.db.database import get_db_context
+from backend.shared.db.models import (
+    MitigationAction, FeedbackHistory, OutcomeMetric, AgentDecision
+)
 
 
 def calculate_outcome_metrics(action_id: str) -> Optional[OutcomeMetric]:

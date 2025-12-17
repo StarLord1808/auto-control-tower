@@ -7,16 +7,14 @@ import json
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Explicitly load environment from flask-api directory
-env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../flask-api/.env'))
+# Explicitly load environment from api directory (now shared/env or similar, but let's keep it simple for now)
+# Explicitly load environment from shared directory
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../shared/.env'))
 load_dotenv(env_path)
 
-# Add flask-api to path to reuse models and db connection
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../flask-api')))
-
-from db.database import get_db_context
-from db.models import RiskEvent, AgentDecision, MitigationAction, Shipment, ShipmentChatView, TrafficData
-from intelligence_layer import IntelligenceLayer
+from backend.shared.db.database import get_db_context
+from backend.shared.db.models import RiskEvent, AgentDecision, MitigationAction, Shipment, ShipmentChatView, TrafficData
+from backend.agent.intelligence_layer import IntelligenceLayer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -129,7 +127,7 @@ def process_risk_event(event_id):
                     optimized = agent.optimize_mitigation(mit_opt, context)
                     
                     if optimized:
-                        from db.models import AlternativeRoute
+                        from backend.shared.db.models import AlternativeRoute
                         alt_route = AlternativeRoute(
                             route_id=f"ALT_{str(uuid.uuid4())[:8]}",
                             action_id=action.action_id,
@@ -151,7 +149,7 @@ def process_risk_event(event_id):
             )
             
             if comm_draft:
-                from db.models import StakeholderCommunication
+                from backend.shared.db.models import StakeholderCommunication
                 comm = StakeholderCommunication(
                     communication_id=f"COM_{str(uuid.uuid4())[:8]}",
                     shipment_id=shipment.shipment_id,
@@ -341,7 +339,7 @@ def run_agent_loop():
                         )
                         
                         if comm_draft:
-                            from db.models import StakeholderCommunication
+                            from backend.shared.db.models import StakeholderCommunication
                             comm = StakeholderCommunication(
                                 communication_id=f"COM_{str(uuid.uuid4())[:8]}",
                                 shipment_id=shipment.shipment_id,

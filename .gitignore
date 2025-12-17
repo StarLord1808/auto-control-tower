@@ -20,4 +20,4 @@ Thumbs.db
 
 # duckdb
 *duckdb
-docs/*
+/reference

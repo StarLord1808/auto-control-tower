@@ -10,13 +10,9 @@ from functools import wraps
 from flask import request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from db.database import get_db_context
-from db.models import User
-
-# JWT Configuration
-JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
-JWT_ALGORITHM = 'HS256'
-JWT_EXPIRATION_HOURS = 24
+from backend.shared.db.database import get_db_context
+from backend.shared.db.models import User
+from backend.shared.constants import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
 
 
 def generate_token(user_id, username, role):

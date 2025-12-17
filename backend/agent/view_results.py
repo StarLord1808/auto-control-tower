@@ -3,11 +3,11 @@ import os
 import json
 from datetime import datetime
 
-# Add flask-api to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../flask-api')))
+# Add api to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../api')))
 
-from db.database import get_db
-from db.models import RiskEvent, AgentDecision, MitigationAction, AlternativeRoute, StakeholderCommunication
+from backend.shared.db.database import get_db
+from backend.shared.db.models import RiskEvent, AgentDecision, MitigationAction, AlternativeRoute, StakeholderCommunication
 
 def format_json(data):
     return json.dumps(data, indent=2, default=str)

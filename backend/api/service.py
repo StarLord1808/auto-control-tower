@@ -6,11 +6,11 @@ from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 import logging
 
-from db.database import get_db_context
-from db.models import (
+from backend.shared.db.database import get_db_context
+from backend.shared.db.models import (
     Shipment, RiskEvent, AgentDecision, MitigationAction, AlternativeRoute,
     StakeholderCommunication, OperationalMetric, Customer, Carrier, Port,
-    ERPOrder, TrafficData, PortCongestion, WMSInventory
+    ERPOrder, TrafficData, PortCongestion, WMSInventory, ShipmentChatView
 )
 
 logger = logging.getLogger(__name__)
@@ -421,5 +421,11 @@ def process_chat_query(message: str, user_context: Dict[str, Any]):
             response += "- Show delayed shipments\n"
             response += "- Show active risks\n"
             response += "- Get shipment status (provide shipment ID)\n"
-            response += "- Dashboard summary\n"
-            return {'response': response, 'type': 'help'}
+
+# Enhanced Shipment Chat View Services
+def get_shipment_chat_view(limit: int = 100, offset: int = 0):
+    """Get summarized shipment data for the dashboard"""
+    with get_db_context() as db:
+        return db.query(ShipmentChatView).order_by(
+            desc(ShipmentChatView.last_updated_at)
+        ).limit(limit).offset(offset).all()

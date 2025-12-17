@@ -1,11 +1,15 @@
 """
 Test script to verify Flask API and database connection
 """
+from os import path
 import sys
-sys.path.insert(0, '/home/jiraiya/codebase/ai-agent/Auto-Control-Tower/backend/flask-api')
 
-from db.database import get_db_context, engine
-from db.models import Shipment, RiskEvent, Customer, Carrier
+# Ensure backend module is importable if running directly
+if __name__ == '__main__':
+    sys.path.append(path.abspath(path.join(path.dirname(__file__), '../../')))
+
+from backend.shared.db.database import get_db_context, engine
+from backend.shared.db.models import Shipment, RiskEvent, Customer, Carrier
 from sqlalchemy import text
 
 def test_database_connection():

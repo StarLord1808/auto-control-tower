@@ -5,11 +5,8 @@ import sys
 import os
 from dotenv import load_dotenv
 
-# Add server directory to path to import server functions
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../server')))
-
-# Load env variables from flask-api directory
-env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../flask-api/.env'))
+# Load env variables from shared .env
+env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../shared/.env'))
 load_dotenv(env_path)
 
 DB_URL = os.getenv("DATABASE_URL")
@@ -60,9 +57,9 @@ def listen():
                             print(f"  Risk Type: {risk_type}")
                             print(f"  Severity: {severity}")
                             
-                            # Import and call the server's processing function
+                            # Import and call the agent processing function
                             try:
-                                from server import process_risk_event
+                                from backend.agent.server import process_risk_event
                                 result = process_risk_event(event_id)
                                 print(f"Processing Result: {result}")
                             except ImportError as import_err:

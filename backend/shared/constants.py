@@ -23,3 +23,9 @@ FLASK_DEBUG = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
 
 # CORS Configuration
 CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*')
+
+# JWT Configuration
+import os
+JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-in-production')
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_HOURS = 24

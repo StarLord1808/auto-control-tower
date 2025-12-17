@@ -7,10 +7,10 @@ from datetime import datetime
 from typing import Dict, Optional, List, Tuple
 from sqlalchemy.orm import Session
 
-from db.database import get_db_context
-from db.models import (
-    MitigationAction, FeedbackHistory, OutcomeMetric,
-    AgentDecision, User
+from backend.shared.db.database import get_db_context
+from backend.shared.db.models import (
+    MitigationAction, AgentDecision, Shipment, ShipmentChatView,
+    FeedbackHistory, OutcomeMetric, User
 )
 
 
